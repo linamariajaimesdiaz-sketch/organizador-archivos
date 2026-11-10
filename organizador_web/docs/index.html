@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizador Inteligente de Archivos · Prototipo Gratuito</title>
+  <meta name="description" content="Organiza cualquier carpeta de tu computador (Descargas, Escritorio, Documentos) en categorías inteligentes con un solo clic. 100% privado y local." />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg: #090b11;
+      --bg-card: rgba(255, 255, 255, 0.035);
+      --border: rgba(255, 255, 255, 0.09);
+      --purple: #7c6af7;
+      --purple-light: #a594fd;
+      --teal: #5de0d8;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --success: #34d399;
+      --radius: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── BARRA DE NAVEGACIÓN ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(9, 11, 17, 0.85);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 800; font-size: 1.15rem; color: #fff; text-decoration: none;
+    }
+    .brand-icon {
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, var(--purple), var(--teal));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 28px; list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: 0.92rem; font-weight: 600;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .btn-nav {
+      background: linear-gradient(135deg, var(--purple), #5b53d4);
+      color: #fff !important; padding: 10px 22px; border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(124, 106, 247, 0.35); transition: all 0.2s;
+    }
+    .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(124, 106, 247, 0.55); }
+
+    /* ─── HERO SECTION ─── */
+    .hero {
+      min-height: 95vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 140px 24px 80px;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(124, 106, 247, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 85% 65%, rgba(93, 224, 216, 0.1) 0%, transparent 50%),
+        var(--bg);
+      position: relative;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(124, 106, 247, 0.12);
+      border: 1px solid rgba(124, 106, 247, 0.35);
+      border-radius: 50px; padding: 6px 18px;
+      font-size: 0.85rem; font-weight: 700; color: #c4baff;
+      margin-bottom: 24px;
+    }
+    .hero-tag-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+
+    h1 {
+      font-size: clamp(2.6rem, 6.5vw, 4.8rem);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1.12;
+      max-width: 860px;
+      margin-bottom: 22px;
+    }
+    .gradient-text {
+      background: linear-gradient(90deg, var(--purple-light), var(--teal));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-p {
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      color: var(--muted);
+      max-width: 650px;
+      margin: 0 auto 38px;
+    }
+
+    .cta-row {
+      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px;
+    }
+    .btn-main {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--purple), #5443db);
+      color: #fff; text-decoration: none; font-size: 1.05rem; font-weight: 700;
+      padding: 16px 36px; border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(124, 106, 247, 0.45);
+      transition: all 0.25s ease;
+    }
+    .btn-main:hover {
+      transform: translateY(-2px); box-shadow: 0 12px 38px rgba(124, 106, 247, 0.65);
+    }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text); text-decoration: none; font-size: 1.05rem; font-weight: 600;
+      padding: 16px 30px; border-radius: 14px; border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255,255,255,0.2); }
+
+    .hero-meta {
+      display: flex; align-items: center; justify-content: center; gap: 24px;
+      color: var(--muted); font-size: 0.86rem; flex-wrap: wrap;
+    }
+    .hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .hero-meta i { color: var(--success); }
+
+    /* ─── MOCKUP INTERACTIVO EN HERO ─── */
+    .app-window {
+      max-width: 880px; width: 100%;
+      margin: 48px auto 0;
+      background: #0f121d;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255,255,255,0.04);
+      text-align: left;
+    }
+    .window-header {
+      background: #151928;
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .window-url {
+      flex: 1; background: rgba(255, 255, 255, 0.06);
+      padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; color: var(--muted);
+      text-align: center;
+    }
+    .window-content {
+      padding: 28px; display: grid; gap: 18px;
+    }
+    .mock-step {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .mock-step-num {
+      font-size: 0.72rem; font-weight: 800; color: var(--purple-light); letter-spacing: 1.5px;
+    }
+    .mock-step-title {
+      font-size: 0.98rem; font-weight: 700; margin: 4px 0 12px;
+    }
+    .mock-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      background: rgba(124, 106, 247, 0.15); border: 1px solid rgba(124, 106, 247, 0.35);
+      border-radius: 8px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; color: #c4baff;
+    }
+    .chip-muted { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--muted); }
+
+    .mock-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .mock-table th { text-align: left; padding: 8px 12px; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .mock-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .badge-dest {
+      background: rgba(124,106,247,0.18); border: 1px solid rgba(124,106,247,0.4);
+      padding: 2px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 600; color: #c4baff;
+    }
+
+    /* ─── SECCIÓN: SIMULADOR EN VIVO (INTERACTIVO) ─── */
+    .simulator-section {
+      padding: 100px 24px;
+      max-width: 980px; margin: 0 auto;
+    }
+    .sec-badge {
+      display: block; text-align: center; font-size: 0.8rem; font-weight: 800;
+      color: var(--teal); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .sec-title {
+      font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; text-align: center; margin-bottom: 16px;
+    }
+    .sec-sub {
+      text-align: center; color: var(--muted); max-width: 580px; margin: 0 auto 48px; font-size: 1.05rem;
+    }
+
+    .sim-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    .sim-input-group {
+      display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .sim-input {
+      flex: 1; min-width: 260px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 18px;
+      color: #fff; font-size: 0.95rem; outline: none;
+    }
+    .sim-input:focus { border-color: var(--purple); }
+    .sim-btn {
+      background: linear-gradient(135deg, var(--purple), #5b53d4);
+      color: #fff; border: none; border-radius: 12px;
+      padding: 12px 24px; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+    }
+    .sim-btn:hover { transform: translateY(-1px); }
+
+    .sim-results {
+      background: rgba(0,0,0,0.25); border-radius: 12px; padding: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .sim-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.025);
+      margin-bottom: 8px; font-size: 0.88rem;
+    }
+    .sim-item:last-child { margin-bottom: 0; }
+    .sim-item-name { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+    /* ─── CARACTERÍSTICAS ─── */
+    .features-section {
+      padding: 100px 24px;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;
+    }
+    .feat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      transition: all 0.25s ease;
+    }
+    .feat-card:hover {
+      border-color: rgba(124, 106, 247, 0.4);
+      transform: translateY(-4px);
+    }
+    .feat-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(124,106,247,0.2), rgba(93,224,216,0.15));
+      border: 1px solid rgba(124,106,247,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: var(--purple-light);
+      margin-bottom: 20px;
+    }
+    .feat-card h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 10px; }
+    .feat-card p { color: var(--muted); font-size: 0.94rem; }
+
+    /* ─── PASOS DE INSTALACIÓN ─── */
+    .install-section {
+      padding: 80px 24px 100px;
+      max-width: 900px; margin: 0 auto;
+    }
+    .step-card {
+      display: flex; gap: 24px; align-items: flex-start;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px; margin-bottom: 18px;
+    }
+    .step-badge {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--purple), var(--teal));
+      color: #fff; font-weight: 900; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .step-body h4 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+    .step-body p { color: var(--muted); font-size: 0.92rem; }
+    .step-code {
+      display: block; background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 14px; margin-top: 10px; font-family: monospace; font-size: 0.85rem;
+      color: var(--teal);
+    }
+
+    /* ─── BANNER DE DESCARGA ─── */
+    .cta-banner {
+      background: linear-gradient(135deg, rgba(124, 106, 247, 0.15) 0%, rgba(93, 224, 216, 0.08) 100%);
+      border: 1px solid rgba(124, 106, 247, 0.3);
+      border-radius: 28px;
+      padding: 64px 32px;
+      max-width: 960px; margin: 0 auto 100px;
+      text-align: center;
+    }
+    .cta-banner h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 16px; }
+    .cta-banner p { color: var(--muted); max-width: 540px; margin: 0 auto 36px; font-size: 1.05rem; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px; text-align: center;
+      color: rgba(255, 255, 255, 0.35); font-size: 0.86rem;
+    }
+    footer a { color: var(--muted); text-decoration: none; margin: 0 10px; }
+    footer a:hover { color: #fff; }
+
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 120px 16px 60px; }
+      .app-window { border-radius: 14px; }
+      .window-content { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <nav>
+    <a href="#" class="brand">
+      <i class="fa-solid fa-box-archive brand-icon"></i>
+      <span>Organizador Inteligente</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#como-funciona">Cómo funciona</a></li>
+      <li><a href="#simulador">Probar Demo</a></li>
+      <li><a href="#caracteristicas">Características</a></li>
+      <li>
+        <a href="organizador_inteligente.zip" download class="btn-nav">
+          <i class="fa-solid fa-download"></i> Descargar ZIP
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">
+      <span class="hero-tag-dot"></span>
+      Prototipo Gratuito · 100% Local & Privado
+    </div>
+
+    <h1>
+      Elige cualquier carpeta.<br />
+      <span class="gradient-text">Nosotros la ordenamos por ti.</span>
+    </h1>
+
+    <p class="hero-p">
+      Tú decides qué carpeta organizar (Descargas, Escritorio, Documentos o la que elijas), defines tus categorías y la aplicación clasifica tus archivos por nombre y contenido en segundos.
+    </p>
+
+    <div class="cta-row">
+      <a href="organizador_inteligente.zip" download="organizador_inteligente.zip" class="btn-main">
+        <i class="fa-solid fa-download"></i> Descargar Prototipo (ZIP)
+      </a>
+      <a href="#simulador" class="btn-outline">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Probar Simulador
+      </a>
+    </div>
+
+    <div class="hero-meta">
+      <span><i class="fa-solid fa-check"></i> Corre en tu propio computador</span>
+      <span><i class="fa-solid fa-check"></i> Ningún archivo sale a internet</span>
+      <span><i class="fa-solid fa-check"></i> Con botón Deshacer (Ctrl+Z)</span>
+    </div>
+
+    <!-- MOCKUP VISUAL DE LA APP REAL -->
+    <div class="app-window" id="como-funciona">
+      <div class="window-header">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+        <div class="window-url">🔒 http://localhost:8501 · Organizador Inteligente</div>
+      </div>
+      <div class="window-content">
+
+        <div class="mock-step">
+          <div class="mock-step-num">PASO 00 · ORIGEN & DESTINO DINÁMICOS</div>
+          <div class="mock-step-title">📂 ¿Qué carpeta deseas organizar?</div>
+          <div class="mock-chips">
+            <span class="chip">📥 Descargas</span>
+            <span class="chip chip-muted">🖥️ Escritorio</span>
+            <span class="chip chip-muted">📄 Documentos</span>
+            <span class="chip chip-muted">🖼️ Imágenes</span>
+            <span class="chip chip-muted">📂 Otra ubicación personalizada...</span>
+          </div>
+        </div>
+
+        <div class="mock-step">
+          <div class="mock-step-num">PASO 01 · TUS CATEGORÍAS PERSONALIZADAS</div>
+          <div class="mock-step-title">🗂️ Mis Carpetas de Clasificación</div>
+          <div class="mock-chips">
+            <span class="chip">📁 Facturas</span>
+            <span class="chip">📁 Universidad</span>
+            <span class="chip">📁 Fotos</span>
+            <span class="chip">📁 Trabajo</span>
+            <span class="chip chip-muted">📁 Otros (sin coincidencia)</span>
+          </div>
+        </div>
+
+        <div class="mock-step">
+          <div class="mock-step-num">PASO 02 · VISTA PREVIA CON CONTROL TOTAL</div>
+          <div class="mock-step-title">👁️ Decide qué mover antes de aplicar</div>
+          <table class="mock-table">
+            <thead>
+              <tr><th>✅ Incluir</th><th>📄 Archivo</th><th>📁 Destino Asignado</th><th>📏 Tamaño</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><i class="fa-solid fa-square-check" style="color:var(--purple-light);"></i></td><td>factura_movistar_octubre.pdf</td><td><span class="badge-dest">Facturas</span></td><td>145 KB</td></tr>
+              <tr><td><i class="fa-solid fa-square-check" style="color:var(--purple-light);"></i></td><td>ensayo_filosofia_final.docx</td><td><span class="badge-dest">Universidad</span></td><td>512 KB</td></tr>
+              <tr><td><i class="fa-regular fa-square" style="color:var(--muted);"></i></td><td>instalador_temp.exe (desmarcado)</td><td><span class="badge-dest" style="opacity:0.6;">Otros</span></td><td>42 MB</td></tr>
+              <tr><td><i class="fa-solid fa-square-check" style="color:var(--purple-light);"></i></td><td>recibo_arriendo_noviembre.pdf</td><td><span class="badge-dest">Facturas</span></td><td>88 KB</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULADOR INTERACTIVO -->
+  <section class="simulator-section" id="simulador">
+    <span class="sec-badge">Demostración en vivo</span>
+    <h2 class="sec-title">Prueba el clasificador inteligente</h2>
+    <p class="sec-sub">Escribe el nombre de cualquier archivo para ver cómo lo clasifica nuestro algoritmo en tiempo real.</p>
+
+    <div class="sim-box">
+      <div class="sim-input-group">
+        <input type="text" id="demo-input" class="sim-input" placeholder="Ej: factura_agua_diciembre.pdf o tesis_grado.docx..." value="recibo_cuenta_banco.pdf" />
+        <button class="sim-btn" id="demo-btn">
+          <i class="fa-solid fa-bolt"></i> Clasificar Archivo
+        </button>
+      </div>
+
+      <div style="font-size:0.86rem; color:var(--muted); margin-bottom:12px;">
+        Carpetas activas en la prueba: <strong>Facturas, Universidad, Fotos, Trabajo, Documentos</strong>
+      </div>
+
+      <div class="sim-results" id="demo-results">
+        <div class="sim-item">
+          <span class="sim-item-name"><i class="fa-solid fa-file-pdf" style="color:#f87171;"></i> recibo_cuenta_banco.pdf</span>
+          <span class="badge-dest"><i class="fa-solid fa-folder"></i> Facturas</span>
+        </div>
+        <div class="sim-item">
+          <span class="sim-item-name"><i class="fa-solid fa-file-word" style="color:#60a5fa;"></i> taller_universidad_calculo.docx</span>
+          <span class="badge-dest"><i class="fa-solid fa-folder"></i> Universidad</span>
+        </div>
+        <div class="sim-item">
+          <span class="sim-item-name"><i class="fa-solid fa-file-image" style="color:#34d399;"></i> foto_graduacion_familia.png</span>
+          <span class="badge-dest"><i class="fa-solid fa-folder"></i> Fotos</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARACTERÍSTICAS -->
+  <section class="features-section" id="caracteristicas">
+    <span class="sec-badge">Características</span>
+    <h2 class="sec-title">Diseñado para darte paz mental</h2>
+    <p class="sec-sub">No más carpetas de descargas abarrotadas ni escritorios desordenados.</p>
+
+    <div class="features-grid">
+
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-folder-tree"></i></div>
+        <h3>Cualquier Carpeta Origen</h3>
+        <p>Organiza Descargas, el Escritorio, Documentos o cualquier disco externo. Tú seleccionas qué ordenar y en qué lugar guardar el resultado.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-brain"></i></div>
+        <h3>Análisis de Nombre & Contenido</h3>
+        <p>No solo lee el nombre del archivo: también analiza el texto interno de archivos <strong>.PDF, .DOCX y .TXT</strong> para no fallar.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-list-check"></i></div>
+        <h3>Control por Casillas de Selección</h3>
+        <p>Examina la lista antes de mover un solo byte. Desmarca los archivos que desees conservar o cámbiales la carpeta de destino directamente.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-rotate-left"></i></div>
+        <h3>Botón Deshacer (Ctrl + Z)</h3>
+        <p>¿Moviste algo sin querer? Con un solo clic en "Deshacer", todos los archivos regresan automáticamente a su carpeta de origen.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3>100% Seguro y Privado</h3>
+        <p>El código corre dentro de tu propio computador. No hay bases de datos externas ni servidores en la nube leyendo tus documentos personales.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-floppy-disk"></i></div>
+        <h3>Recuerda tu Configuración</h3>
+        <p>Tus carpetas personalizadas quedan almacenadas en un archivo ligero <code>config.json</code> para que no tengas que reconfigurar nada al volver a abrirlo.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CÓMO INSTALAR EN 3 PASOS -->
+  <section class="install-section">
+    <span class="sec-badge">Instalación en 1 minuto</span>
+    <h2 class="sec-title">Cómo ponerlo a correr</h2>
+    <p class="sec-sub">Sin comandos difíciles. Solo descomprimes y haces doble clic.</p>
+
+    <div class="step-card">
+      <div class="step-badge">1</div>
+      <div class="step-body">
+        <h4>Descarga el paquete portátil (ZIP)</h4>
+        <p>Descarga el archivo <code>organizador_inteligente.zip</code> que contiene la aplicación completa lista para ejecutar.</p>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-badge">2</div>
+      <div class="step-body">
+        <h4>Haz doble clic en <code>iniciar_organizador.bat</code></h4>
+        <p>En Windows, solo abre el archivo bat. En Mac o Linux, ejecuta <code>iniciar_mac_linux.sh</code>. Se encarga de verificar dependencias automáticamente.</p>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-badge">3</div>
+      <div class="step-body">
+        <h4>¡Listo! Se abre en tu navegador</h4>
+        <p>Verás la interfaz gráfica interactiva en <code>http://localhost:8501</code> lista para empezar a organizar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BANNER FINAL DE DESCARGA -->
+  <section class="cta-banner">
+    <h2>¿Listo para organizar tu vida digital?</h2>
+    <p>Descarga el prototipo ahora mismo, pruébalo con tus propios archivos y disfruta de un equipo limpio y ordenado.</p>
+    <a href="organizador_inteligente.zip" download="organizador_inteligente.zip" class="btn-main">
+      <i class="fa-solid fa-download"></i> Descargar Prototipo Gratuito
+    </a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Organizador Inteligente de Archivos · Prototipo Open Source · Licencia MIT</p>
+    <div style="margin-top: 10px;">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#simulador">Simulador</a>
+      <a href="#caracteristicas">Características</a>
+      <a href="organizador_inteligente.zip" download>Descargar ZIP</a>
+    </div>
+  </footer>
+
+  <!-- SCRIPT DEL SIMULADOR EN VIVO -->
+  <script>
+    const input = document.getElementById('demo-input');
+    const btn = document.getElementById('demo-btn');
+    const results = document.getElementById('demo-results');
+
+    const categorias = [
+      { nombre: 'Facturas', keywords: ['factura', 'recibo', 'cuenta', 'pago', 'banco', 'invoice', 'comprobante'] },
+      { nombre: 'Universidad', keywords: ['universidad', 'taller', 'ensayo', 'tesis', 'clase', 'parcial', 'examen', 'materia'] },
+      { nombre: 'Fotos', keywords: ['foto', 'imagen', 'img', 'captura', 'screenshot', 'vacaciones', 'familia', 'jpg', 'png'] },
+      { nombre: 'Trabajo', keywords: ['trabajo', 'proyecto', 'informe', 'cliente', 'reunion', 'acta', 'contrato'] },
+      { nombre: 'Documentos', keywords: ['documento', 'cedula', 'pasaporte', 'cv', 'curriculum', 'hoja_vida'] }
+    ];
+
+    function clasificarTexto(nombre) {
+      const limpio = nombre.toLowerCase();
+      let mejor = 'Otros';
+      let maxScore = 0;
+
+      for (const cat of categorias) {
+        let score = 0;
+        for (const kw of cat.keywords) {
+          if (limpio.includes(kw)) score += 2;
+        }
+        if (score > maxScore) {
+          maxScore = score;
+          mejor = cat.nombre;
+        }
+      }
+      return mejor;
+    }
+
+    function getIcon(nombre) {
+      if (nombre.endsWith('.pdf')) return '<i class="fa-solid fa-file-pdf" style="color:#f87171;"></i>';
+      if (nombre.endsWith('.docx') || nombre.endsWith('.doc')) return '<i class="fa-solid fa-file-word" style="color:#60a5fa;"></i>';
+      if (nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg')) return '<i class="fa-solid fa-file-image" style="color:#34d399;"></i>';
+      return '<i class="fa-solid fa-file" style="color:var(--teal);"></i>';
+    }
+
+    btn.addEventListener('click', () => {
+      const val = input.value.trim();
+      if (!val) return;
+      const destino = clasificarTexto(val);
+      const icon = getIcon(val);
+
+      const item = document.createElement('div');
+      item.className = 'sim-item';
+      item.innerHTML = `
+        <span class="sim-item-name">${icon} ${val}</span>
+        <span class="badge-dest"><i class="fa-solid fa-folder"></i> ${destino}</span>
+      `;
+      results.prepend(item);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') btn.click();
+    });
+  </script>
+</body>
+</html>
